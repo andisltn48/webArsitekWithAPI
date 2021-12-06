@@ -1,0 +1,1 @@
+<a href="{{route('desain.get-gambar-desain', $model->id)}}" class="btn btn-primary " style="border-radius: 2rem">Lihat Gambar</a>
