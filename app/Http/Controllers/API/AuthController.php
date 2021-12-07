@@ -24,13 +24,13 @@ class AuthController extends Controller
             // } else {
             //     return redirect(route('pesanan.index'));
             // }
-            $token = $request->user()->createToken('token-name', ['server:update'])->plainTextToken;
+            $token = $request->user()->createToken('token-name')->plainTextToken;
             return response()->json([
                 'message' => 'Login Sukses',
                 'email' => Auth::user()->email,
                 'access_token' => $token,
                 'token_type' => 'Bearer'
-            ], 401);
+            ], 200);
         } else {
             return response()->json([
                 'data' => $validate,

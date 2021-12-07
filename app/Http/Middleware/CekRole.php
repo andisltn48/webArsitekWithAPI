@@ -19,7 +19,7 @@ class CekRole
     public function handle($request, Closure $next, ...$roles)
     {
         foreach ($roles as $key => $value) {
-            if (session('role') == $value) {    
+            if (Auth::user()->role_id == $value) {    
                 // dd($role->name);
                 return $next($request);
             }
@@ -27,7 +27,7 @@ class CekRole
         
         return response()->json([
             'message' => 'Anda tidak memiliki hak ases',
-            'role' => session('role'),
+            'role' => Auth::user()->role_id,
         ]);
         //  return redirect('/')->with('error',"Anda tidak dapat mengakses halaman ini");
     }
