@@ -4,13 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\DataPemesanan;
-use App\Models\Progress;
-use App\Models\User;
-use Auth;
-use Yajra\Datatables\Datatables;
+use App\Models\Informasi;
 
-class PesananController extends Controller
+class InformasiController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,15 +15,11 @@ class PesananController extends Controller
      */
     public function index()
     {
-        $jumlah_pesanan = DataPemesanan::all()->count();
-        $jumlah_pengguna = User::where('role_id', '2')->get()->count();
-        $onprogress = DataPemesanan::where('status_pengerjaan', 'Dalam Pengerjaan')->get()->count();
-        $selesai = DataPemesanan::where('status_pengerjaan', 'Selesai Dikerjakan')->get()->count(); 
+        $informasi = Informasi::all();
+
         return response()->json([
-            'jumlah_pesanan' => $jumlah_pesanan,
-            'jumlah_pengguna' => $jumlah_pengguna,
-            'onprogress' => $onprogress,
-            'selesai' => $selesai,
+            'message' => 'Berhasil mengakses informasi',
+            'data' => $informasi
         ], 200);
     }
 
@@ -49,7 +41,17 @@ class PesananController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validation = $request->validate([
+            'informasi' => ['required']
+        ]);
+        $informasi = Informasi::create([
+            'informasi' => $request->informasi
+        ]);
+
+        return response()->json([
+            'message' => 'Berhasil menyimpan informasi',
+            'data' => $informasi
+        ], 200);
     }
 
     /**
@@ -95,23 +97,5 @@ class PesananController extends Controller
     public function destroy($id)
     {
         //
-    }
-
-    public function get_pesanan(Request $request)
-    {
-        function convert($harga)
-        {
-            return strrev(implode('.', str_split(strrev(strval($harga)), 3)));
-        };
-
-        $datapemesanan = DataPemesanan::all();
-
-        if ($request->input('status') != null) {
-            $datapemesanan = $datapemesanan->where('status_pengerjaan', $request->status);
-        }
-        
-        return response()->json([ 
-            'data' => $datapemesanan
-        ], 200);
     }
 }

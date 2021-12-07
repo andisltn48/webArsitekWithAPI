@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
 use App\Models\DaftarDesain;
 use App\Models\DaftarGambarDesain;
 use App\Models\DataPemesanan;
-use Illuminate\Support\Facades\File; 
+use Illuminate\Support\Facades\File;
 
 class DesainController extends Controller
 {
@@ -18,7 +19,7 @@ class DesainController extends Controller
      */
     public function index()
     {
-        return view('admin-folder.desain.index');
+        //
     }
 
     /**
@@ -39,6 +40,13 @@ class DesainController extends Controller
      */
     public function store(Request $request)
     {
+        $validatedData = $request->validate([
+            'harga' => ['required'],
+            'nama_desain' => ['required'],
+            'deskripsi' => ['required'],
+            'tipe_lantai' => ['required'],
+        ]);
+
         function RemoveSpecialChar($str) {
             $res = str_replace( array( '.' ), '', $str);
 
@@ -54,20 +62,10 @@ class DesainController extends Controller
             'harga' => $harga
         ]);
 
-        $gambar = $request->gambar_desain;
-        foreach ($gambar as $key => $value) {
-            $file_gambar_desain = $value;
-            $fileName_gambarDesain = time().'_'.$file_gambar_desain->getClientOriginalName();
-            $file_gambar_desain->move(public_path('storage/gambar-desain'), $fileName_gambarDesain);
-            // echo $value;
-
-            $datagambar = DaftarGambarDesain::create([
-                'id_desain' => $daftardesain->id,
-                'gambar' => $fileName_gambarDesain
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Desain berhasil ditambahkan');
+        return response()->json([
+            'message' => 'Berhasil menyimpan desain',
+            'data' => $daftardesain
+        ], 200);
     }
 
     /**
@@ -107,6 +105,13 @@ class DesainController extends Controller
             return $res;
         }
 
+        $validatedData = $request->validate([
+            'harga_edit' => ['required'],
+            'nama_desain_edit' => ['required'],
+            'deskripsi_edit' => ['required'],
+            'tipe_lantai_edit' => ['required'],
+        ]);
+
         $harga = RemoveSpecialChar($request->harga_edit);
         
         $daftardesain = DaftarDesain::where('id', $id)->first();
@@ -128,7 +133,10 @@ class DesainController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Berhasil melakukan update desain');
+        return response()->json([
+            'message' => 'Berhasil update desain',
+            'data' => $daftardesain
+        ], 200);
     }
 
     /**
@@ -139,60 +147,34 @@ class DesainController extends Controller
      */
     public function destroy($id)
     {
-        $cekid = DataPemesanan::where('id_pesanan', $id)->first();
-        if ($cekid == NULL) {
-            $desain = DaftarDesain::where('id', $id)->first();
-            if ($desain) {
-                $desain->delete();
-            }
-            $daftargambar = DaftarGambarDesain::where('id_desain', $id)->get();
-            if ($daftargambar) {
-                foreach ($daftargambar as $key => $value) {
-
-                    if(File::exists(public_path('storage/gambar-desain/'.$value->gambar))){
-                        File::delete(public_path('storage/gambar-desain/'.$value->gambar));
-                    }else{
-                        dd('File does not exists.');
-                    }
-                    $value->delete();
-                }
-            }
-
-            return redirect()->back()->with('success', 'Desain berhasil dihapus');
-        } else {
-            return redirect()->back()->with('error', 'Tidak dapat dihapus. Desain sedang dalam pemesanan!');
-        }
-        
+        //
     }
 
     public function get_desain(Request $request)
     {
-        $datapemesanan = DaftarDesain::select('daftar_desain.*');
+        $daftardesain = DaftarDesain::all();
 
         if ($request->input('lantai') != null) {
-            $datapemesanan = $datapemesanan->where('tipe_lantai', $request->lantai);
+            $daftardesain = $daftardesain->where('tipe_lantai', $request->lantai);
         }
-        
-        $datatables = Datatables::of($datapemesanan);
-        if ($request->get('search')['value']) {
-            $datatables->filter(function ($query) {
-                    $keyword = request()->get('search')['value'];
-                    $query->where('nama_desain', 'like', "%" . $keyword . "%");
+        // $datatables = Datatables::of($datapemesanan);
+        // if ($request->get('search')['value']) {
+        //     $datatables->filter(function ($query) {
+        //             $keyword = request()->get('search')['value'];
+        //             $query->where('nama_desain', 'like', "%" . $keyword . "%");
 
-        });}
-        $datatables->orderColumn('updated_at', function ($query, $order) {
-            $query->orderBy('daftar_desain.updated_at', $order);
-        });
-        return $datatables->addIndexColumn()->escapeColumns([])
-        ->addColumn('action','admin-folder.desain.action')
-        ->addColumn('lihat','admin-folder.desain.lihat')
-        ->addColumn('deskripsi','admin-folder.desain.deskripsi')
-        ->toJson();
-    }
-
-    public function get_gambar_desain($id)
-    {
-        $daftargambar = DaftarGambarDesain::where('id_desain', $id)->get();
-        return view('admin-folder.desain.daftar-gambar', compact('daftargambar'));
+        // });}
+        // $datatables->orderColumn('updated_at', function ($query, $order) {
+        //     $query->orderBy('daftar_desain.updated_at', $order);
+        // });
+        // return $datatables->addIndexColumn()->escapeColumns([])
+        // ->addColumn('action','admin-folder.desain.action')
+        // ->addColumn('lihat','admin-folder.desain.lihat')
+        // ->addColumn('deskripsi','admin-folder.desain.deskripsi')
+        // ->toJson();
+        return response()->json([
+            'message' => 'Berhasil mendapatkan desain',
+            'data' => $daftardesain
+        ], 200);
     }
 }
